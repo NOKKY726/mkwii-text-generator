@@ -162,7 +162,7 @@ def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
 
 y = 0
 lf_flag = False
-concat_img = Image.open("Fonts/Yellow/space.png")  #  エラー防止
+concat_img = Image.open("Fonts/Yellow/SPACE.png")  #  エラー防止
 for i in range(len(img_list)):  # 画像の結合
     if img_list[i]!=None:
         if i==0 or lf_flag==True:
