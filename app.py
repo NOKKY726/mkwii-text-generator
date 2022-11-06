@@ -36,13 +36,12 @@ if len(quot_pos)>=2:
         text = text[0:p1]+replace_font+text[p2:len(text)]
         quot_pos = [m.start() for m in re.finditer("'", text)]
 
-# lstrip(","): 最初に「'」を使用した時に残る、左側の「,」を削除
-text = text.replace("'", "").lstrip(",")
-# 右側の空白や改行、残った「,」を削除
-while text[len(text)-2:]==", " or text[len(text)-7:]==",SPACE_" \
-    or text[len(text)-2:]==",\n" or text[len(text)-1:]==",":
-    text = text.removesuffix(",SPACE_").removesuffix(",\n").rstrip(", ")
-# 使用できない文字を削除 (validate: 検証)
+#「'」を空文字に変換後、両端に「,」があれば削除
+text = text.replace("'", "").strip(",")
+# 右側の改行や空白を削除
+while text[-2:]==",\n" or text[-2:]==", " or text[-7:]==",SPACE_":
+    text = text.rstrip(",\n").rstrip(", ").removesuffix(",SPACE_")
+# 使用できない文字を空文字に変換 (validation: 検証)
 text = re.sub(re.compile("[^0-9A-Z-+:./_', \n]"), "", text)
 #「,」で分割
 text = text.split(",")
