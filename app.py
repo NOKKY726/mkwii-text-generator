@@ -2,7 +2,6 @@ import streamlit as st
 import re
 from PIL import Image, ImageChops, ImageEnhance
 
-
 st.set_page_config(page_title="MKWii Text Generator", layout="wide")
 
 if "top_color" not in st.session_state:  # 初期化
@@ -19,19 +18,19 @@ selectbox = st.sidebar.selectbox(
     )
 
 
-# ファイル名として使えない文字を「replace_dict」に従って置換
-replace_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
-text = [replace_dict.get(elem, elem) for elem in text]
+# ファイル名として使えない文字を「repl_dict」に従って置換
+repl_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
+text = [repl_dict.get(elem, elem) for elem in text]
 
-cnt, flag = 0, False  #「'」間の文字を置換
+cnt, repl_flag = 0, False  #「'」間の文字を置換
 for i, elem in enumerate(text):
     if elem=="'" and cnt<text.count("'")//2:
-        if not flag:
-            flag = True
+        if not repl_flag:
+            repl_flag = True
         else:
-            flag = False
+            repl_flag = False
             cnt += 1
-    elif flag and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
+    elif repl_flag and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
         text[i] += "_"
 
 #「'」を削除し、「,」で連結
@@ -93,11 +92,11 @@ elif selectbox=="Gradient":
             )
 
 
-def gradient(top_color, btm_color, width, height):
-    base = Image.new("RGBA", (width, height), top_color)
-    top = Image.new("RGBA", (width, height), btm_color)
-    mask = Image.new("L", (width, height))
-    mask_data = []
+def gradient(top_color, btm_color, size):
+    base = Image.new("RGBA", size, top_color)
+    top = Image.new("RGBA", size, btm_color)
+    mask = Image.new("L", size)
+    mask_data, width, height = [], *size
     for y in range(height):
         mask_data.extend([int(255*(y/height))]*width)
     mask.putdata(mask_data)
@@ -118,15 +117,14 @@ for i, file_name in enumerate(file_name_list):
             if selectbox=="Colorful":
                 effect_img = Image.new(
                     "RGBA",
-                    (open_img.width, open_img.height),
+                    open_img.size,
                     st.session_state.color_list[i]
                     )
             else:
                 effect_img = gradient(
                     st.session_state.top_color,
                     st.session_state.btm_color,
-                    open_img.width,
-                    open_img.height)
+                    open_img.size)
             open_img = ImageChops.multiply(open_img, effect_img)
 
     img_list.append(open_img)
@@ -149,8 +147,7 @@ def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
     x += img_width
     return x
 
-y = 0
-lf_flag = False
+y, lf_flag = 0, False
 concat_img = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
 for i in range(len(img_list)):  # 画像の結合
     if img_list[i]!=None:
@@ -189,7 +186,7 @@ for i in range(len(img_list)):  # 画像の結合
 if selectbox=="Color":
     effect_img = Image.new(
         "RGBA",
-        (concat_img.width, concat_img.height),
+        concat_img.size,
         st.session_state.top_color
         )
     concat_img = ImageChops.multiply(concat_img, effect_img)
