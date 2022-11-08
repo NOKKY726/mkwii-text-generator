@@ -96,7 +96,7 @@ def gradient(top_color, btm_color, size):
     base = Image.new("RGBA", size, top_color)
     top = Image.new("RGBA", size, btm_color)
     mask = Image.new("L", size)
-    mask_data, width, height = [], *size
+    mask_data, width, height = [], *size  # アンパック
     for y in range(height):
         mask_data.extend([int(255*(y/height))]*width)
     mask.putdata(mask_data)
