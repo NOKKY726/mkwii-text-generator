@@ -10,7 +10,7 @@ if "top_color" not in st.session_state:  # 初期化
     st.session_state.btm_color = "#0f0"
     st.session_state.color_list = ["#fff" for _ in range(10000)]
 
-text = st.sidebar.text_area("text_area", label_visibility="collapsed")
+text = st.sidebar.text_area("text_area", label_visibility="collapsed").upper()
 slider = st.sidebar.slider("Brightness", step=5)/50+1
 selectbox = st.sidebar.selectbox(
     "selectbox",
@@ -19,37 +19,30 @@ selectbox = st.sidebar.selectbox(
     )
 
 
-text = ",".join(list(text)).upper()  # 分割したものを「,」で連結
-quot_pos = [m.start() for m in re.finditer("'", text)]  #「'」の位置を取得
-# 置換するための辞書を用意
-replace_dict1 = {
-    "1":"1_", "2":"2_", "3":"3_", "4":"4_", "5":"5_",
-    "6":"6_", "7":"7_", "8":"8_", "9":"9_", "0":"0_",
-    "-":"-_", "/":"SLASH_", " ":"SPACE_"
-    }
-#「'」間の文字を「replace_dict1」に従って置換
-if len(quot_pos)>=2:
-    for i in range(len(quot_pos)//2):
-        p1 = quot_pos[i*2]+1
-        p2 = quot_pos[i*2+1]
-        replace_font = text[p1:p2].translate(str.maketrans(replace_dict1))
-        text = text[0:p1]+replace_font+text[p2:len(text)]
-        quot_pos = [m.start() for m in re.finditer("'", text)]
+# ファイル名として使えない文字を「replace_dict」に従って置換
+replace_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
+text = [replace_dict.get(elem, elem) for elem in text]
 
-#「'」を空文字に変換後、両端に「,」があれば削除
-text = text.replace("'", "").strip(",")
+cnt, flag = 0, False  #「'」間の文字を置換
+for i, elem in enumerate(text):
+    if elem=="'" and cnt<text.count("'")//2:
+        if not flag:
+            flag = True
+        else:
+            flag = False
+            cnt += 1
+    elif flag and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
+        text[i] += "_"
+
+#「'」を削除し、「,」で連結
+text = ",".join([elem for elem in text if elem!="'"])
 # 右側の改行や空白を削除
 while text[-2:]==",\n" or text[-2:]==", " or text[-7:]==",SPACE_":
     text = text.rstrip(",\n").rstrip(", ").removesuffix(",SPACE_")
-# 使用できない文字を空文字に変換 (validation: 検証)
-text = re.sub(re.compile("[^0-9A-Z-+:./_', \n]"), "", text)
-#「,」で分割
-text = text.split(",")
-#「'」の変換時や検証時に生じた空文字とファイル名以外のアンダーバーを削除
-text = [elm for elm in text if elm!="" and elm!="_"]
-# ファイル名として使えない文字を「replace_dict2」に従って変換
-replace_dict2 = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
-file_name_list = [replace_dict2.get(elem, elem) for elem in text]
+# 使用できない文字を空文字に置換 (validation: 検証)
+text = re.sub("[^-+0-9A-Z_,\n]", "", text)
+#検証時に生じた空文字とファイル名以外のアンダースコアを削除
+file_name_list = [elem for elem in text.split(",") if elem!="" and elem!="_"]
 
 
 def set_top_color():
@@ -57,10 +50,9 @@ def set_top_color():
 def set_btm_color():
     st.session_state.btm_color = st.session_state.color_picker_btm
 def set_color_list():
-    st.session_state.color_list[index] = \
-        st.session_state.color_picker_colorful
+    st.session_state.color_list[index] = st.session_state.color_picker_colorful
 
-if selectbox=="Color":
+if selectbox=="Color":  #「color_picker」を「session_state」で管理
     st.session_state.color_picker_top = st.session_state.top_color
     st.sidebar.color_picker(
         "Pick A Color",
@@ -70,15 +62,14 @@ if selectbox=="Color":
 elif selectbox=="Colorful" and len(file_name_list):
     col1, col2 = st.sidebar.columns((1, 2))
     with col2:
-        options = file_name_list  # インデックス番号の取得
+        options = file_name_list  # インデックスの取得
         index = st.selectbox(
             "Select The Character",
             range(len(options)),
             format_func=lambda x: options[x]
             )
-    with col1:  #「color_picker」を「session_state」で管理
-        st.session_state.color_picker_colorful = \
-            st.session_state.color_list[index]
+    with col1:
+        st.session_state.color_picker_colorful = st.session_state.color_list[index]
         st.color_picker(
             "Pick A Color",
             key="color_picker_colorful",
@@ -115,14 +106,14 @@ def gradient(top_color, btm_color, width, height):
 
 img_list = []  # 画像を読み込み、追加していく
 for i, file_name in enumerate(file_name_list):
-    if file_name=="\n":  # 改行時は「None」をリストに追加
+    if file_name=="\n":  # 改行は「None」で判定
         open_img = None
 
     elif selectbox=="Yellow":
         open_img = Image.open(f"Fonts/Yellow/{file_name}.png")
     else:
         open_img = Image.open(f"Fonts/White/{file_name}.png")
-        # 1文字ずつ乗算する (「Color」は後からまとめて行う)
+        # 1文字ずつ乗算 (「Color」は後からまとめて行う)
         if selectbox=="Colorful" or selectbox=="Gradient":
             if selectbox=="Colorful":
                 effect_img = Image.new(
@@ -143,17 +134,16 @@ for i, file_name in enumerate(file_name_list):
 
 def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
     #50: 0～9 & SLASH, 42: - & +
-    if img_width!=50 and img_width!=42 \
-        and file_name!="PERIOD" and file_name!="CORON":
-        img_width -= 12
-    else:
+    if img_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
         img_width -= 4
+    else:
+        img_width -= 12
 
-    if file_name=="T" or file_name=="7_":
+    if file_name in ["T", "7_"]:
         img_width -= 6
-    if file_name=="I" or file_name=="M":
+    if file_name in ["I", "M", "CORON"]:
         img_width -= 2
-    if file_name=="L" or file_name=="Q":
+    if file_name in ["L", "Q"]:
         img_width += 2
 
     x += img_width
@@ -161,7 +151,7 @@ def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
 
 y = 0
 lf_flag = False
-concat_img = Image.open("Fonts/Yellow/SPACE.png")  #  エラー防止
+concat_img = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
 for i in range(len(img_list)):  # 画像の結合
     if img_list[i]!=None:
         if i==0 or lf_flag==True:
@@ -191,7 +181,7 @@ for i in range(len(img_list)):  # 画像の結合
             img_clear = Image.new("RGBA", bg.size)
             img_clear.paste(img_list[i], (x, y))
             concat_img = Image.alpha_composite(bg, img_clear)
-    else:  # 改行時の処理
+    else:  # 改行処理
         y += 64
         lf_flag = True
 
@@ -205,7 +195,7 @@ if selectbox=="Color":
     concat_img = ImageChops.multiply(concat_img, effect_img)
 
 
-enhancer = ImageEnhance.Brightness(concat_img)
+enhancer = ImageEnhance.Brightness(concat_img)  # 明るさ調整
 display_img = enhancer.enhance(slider)
 
 st.image(display_img)
