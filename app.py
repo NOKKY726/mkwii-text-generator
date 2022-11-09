@@ -40,7 +40,7 @@ while text[-2:]==",\n" or text[-2:]==", " or text[-7:]==",SPACE_":
     text = text.rstrip(",\n").rstrip(", ").removesuffix(",SPACE_")
 # 使用できない文字を空文字に置換 (validation: 検証)
 text = re.sub("[^-+0-9A-Z_,\n]", "", text)
-#検証時に生じた空文字とファイル名以外のアンダースコアを削除
+# 検証時に生じた空文字とファイル名以外のアンダースコアを削除
 file_name_list = [elem for elem in text.split(",") if elem!="" and elem!="_"]
 
 
@@ -131,7 +131,7 @@ for i, file_name in enumerate(file_name_list):
 
 
 def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
-    #50: 0～9 & SLASH, 42: - & +
+    # 50: 0～9 & SLASH, 42: - & +
     if img_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
         img_width -= 4
     else:
