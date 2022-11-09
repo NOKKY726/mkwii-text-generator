@@ -163,9 +163,9 @@ for i in range(len(img_list)):  # 画像の結合
                     (max(concat_img.width, img_width), y+64)
                     )
                 bg.paste(concat_img, (0, 0))
+                is_LF = False
             bg.paste(img_list[i], (0, y))
             concat_img = bg
-            is_LF = False
         else:
             x = concat_pos(img_width, file_name, x)
             img_width = img_list[i].width
