@@ -18,19 +18,19 @@ selectbox = st.sidebar.selectbox(
     )
 
 
-# ファイル名として使えない文字を「repl_dict」に従って置換
-repl_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
-text = [repl_dict.get(elem, elem) for elem in text]
+# ファイル名として使えない文字を「replace_dict」に従って置換
+replace_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
+text = [replace_dict.get(elem, elem) for elem in text]
 
-cnt, repl_flag = 0, False  #「'」間の文字を置換
+cnt, need_replace = 0, False  #「'」間の文字を置換
 for i, elem in enumerate(text):
     if elem=="'" and cnt<text.count("'")//2:
-        if not repl_flag:
-            repl_flag = True
+        if not need_replace:
+            need_replace = True
         else:
-            repl_flag = False
+            need_replace = False
             cnt += 1
-    elif repl_flag and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
+    elif need_replace and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
         text[i] += "_"
 
 #「'」を削除し、「,」で連結
@@ -92,7 +92,7 @@ elif selectbox=="Gradient":
             )
 
 
-def gradient(top_color, btm_color, size):
+def gradient(top_color, btm_color, size: tuple[int, int]):
     base = Image.new("RGBA", size, top_color)
     top = Image.new("RGBA", size, btm_color)
     mask = Image.new("L", size)
@@ -147,11 +147,11 @@ def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
     x += img_width
     return x
 
-y, lf_flag = 0, False
+y, is_LF = 0, False  # LF: Line Feed (改行)
 concat_img = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
 for i in range(len(img_list)):  # 画像の結合
     if img_list[i]!=None:
-        if i==0 or lf_flag==True:
+        if i==0 or is_LF==True:
             x = 0
             img_width = img_list[i].width
             file_name = file_name_list[i]
@@ -165,7 +165,7 @@ for i in range(len(img_list)):  # 画像の結合
                 bg.paste(concat_img, (0, 0))
             bg.paste(img_list[i], (0, y))
             concat_img = bg
-            lf_flag = False
+            is_LF = False
         else:
             x = concat_pos(img_width, file_name, x)
             img_width = img_list[i].width
@@ -180,7 +180,7 @@ for i in range(len(img_list)):  # 画像の結合
             concat_img = Image.alpha_composite(bg, img_clear)
     else:  # 改行処理
         y += 64
-        lf_flag = True
+        is_LF = True
 
 
 if selectbox=="Color":
