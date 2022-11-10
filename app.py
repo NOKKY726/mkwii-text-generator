@@ -30,18 +30,18 @@ for i, elem in enumerate(text):
         else:
             need_replace = False
             cnt += 1
-    elif need_replace and (text[i].isdecimal() or text[i] in ["-", "SLASH", "SPACE"]):
+    elif need_replace and text[i] in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
         text[i] += "_"
 
 #「'」を削除し、「,」で連結
 text = ",".join([elem for elem in text if elem!="'"])
 # 右側の改行や空白を削除
-while text[-2:]==",\n" or text[-2:]==", " or text[-7:]==",SPACE_":
-    text = text.rstrip(",\n").rstrip(", ").removesuffix(",SPACE_")
+while text[-2:]==",\n" or text[-6:]==",SPACE" or text[-7:]==",SPACE_":
+    text = text.rstrip(",\n").removesuffix(",SPACE").removesuffix(",SPACE_")
 # 使用できない文字を空文字に置換 (validation: 検証)
 text = re.sub("[^-+0-9A-Z_,\n]", "", text)
 # 検証時に生じた空文字とファイル名以外のアンダースコアを削除
-file_name_list = [elem for elem in text.split(",") if elem!="" and elem!="_"]
+file_name_list = [elem for elem in text.split(",") if elem not in ["", "_"]]
 
 
 def set_top_color():
@@ -113,7 +113,7 @@ for i, file_name in enumerate(file_name_list):
     else:
         open_img = Image.open(f"Fonts/White/{file_name}.png")
         # 1文字ずつ乗算 (「Color」は後からまとめて行う)
-        if selectbox=="Colorful" or selectbox=="Gradient":
+        if selectbox in ["Colorful", "Gradient"]:
             if selectbox=="Colorful":
                 effect_img = Image.new(
                     "RGBA",
