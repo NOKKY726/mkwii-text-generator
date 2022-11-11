@@ -35,9 +35,9 @@ for i, elem in enumerate(text):
 
 #「'」を削除し、「,」で連結
 text = ",".join([elem for elem in text if elem!="'"])
-# 右側の改行や空白を削除
-while text[-2:]==",\n" or text[-6:]==",SPACE" or text[-7:]==",SPACE_":
-    text = text.rstrip(",\n").removesuffix(",SPACE").removesuffix(",SPACE_")
+# 右側の空白や改行を削除
+while text[-6:]==",SPACE" or text[-7:]==",SPACE_" or text[-2:]==",\n":
+    text = text.removesuffix(",SPACE").removesuffix(",SPACE_").rstrip(",\n")
 # 使用できない文字を空文字に置換 (validation: 検証)
 text = re.sub("[^-+0-9A-Z_,\n]", "", text)
 # 検証時に生じた空文字とファイル名以外のアンダースコアを削除
@@ -105,8 +105,8 @@ def gradient(top_color, btm_color, size: tuple[int, int]):
 
 img_list = []  # 画像を読み込み、追加していく
 for i, file_name in enumerate(file_name_list):
-    if file_name=="\n":  # 改行は「None」で判定
-        open_img = None
+    if file_name=="\n":
+        open_img = "LF"  # LF: Line Feed (改行)
 
     elif selectbox=="Yellow":
         open_img = Image.open(f"Fonts/Yellow/{file_name}.png")
@@ -130,7 +130,7 @@ for i, file_name in enumerate(file_name_list):
     img_list.append(open_img)
 
 
-def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
+def concat_pos(x, img_width, file_name):  # 文字に応じた幅の調整
     # 50: 0～9 & SLASH, 42: - & +
     if img_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
         img_width -= 4
@@ -147,27 +147,27 @@ def concat_pos(img_width, file_name, x):  # 文字に応じた幅の調整
     x += img_width
     return x
 
-y, is_LF = 0, False  # LF: Line Feed (改行)
+y, is_LF = 0, False
 concat_img = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
 for i in range(len(img_list)):  # 画像の結合
-    if img_list[i]!=None:
-        if i==0 or is_LF==True:
+    if img_list[i]!="LF":
+        if i==0 or is_LF:
             x = 0
             img_width = img_list[i].width
             file_name = file_name_list[i]
             if i==0:  # 1文字目
-                bg = Image.new("RGBA", (img_width, y+64))
+                concat_img = img_list[i]
             else:  # 改行直後
                 bg = Image.new(
                     "RGBA",
                     (max(concat_img.width, img_width), y+64)
                     )
                 bg.paste(concat_img, (0, 0))
+                bg.paste(img_list[i], (0, y))
+                concat_img = bg
                 is_LF = False
-            bg.paste(img_list[i], (0, y))
-            concat_img = bg
         else:
-            x = concat_pos(img_width, file_name, x)
+            x = concat_pos(x, img_width, file_name)
             img_width = img_list[i].width
             file_name = file_name_list[i]
             bg = Image.new(
