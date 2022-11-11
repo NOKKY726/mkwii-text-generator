@@ -13,7 +13,6 @@ st.set_page_config(
         }
     )
 
-
 if "top_color" not in st.session_state:  # 初期化
     st.session_state.top_color = "#f00"
     st.session_state.btm_color = "#0f0"
@@ -29,7 +28,7 @@ selectbox = st.sidebar.selectbox(
 
 
 # ファイル名として使えない文字を「replace_dict」に従って置換
-replace_dict = {":":"CORON", ".":"PERIOD", "/":"SLASH", " ":"SPACE"}
+replace_dict = {":": "CORON", ".": "PERIOD", "/": "SLASH", " ": "SPACE"}
 text = [replace_dict.get(elem, elem) for elem in text]
 
 cnt, need_replace = 0, False  #「'」間の文字を置換
@@ -134,7 +133,8 @@ for i, file_name in enumerate(file_name_list):
                 effect_img = gradient(
                     st.session_state.top_color,
                     st.session_state.btm_color,
-                    open_img.size)
+                    open_img.size
+                    )
             open_img = ImageChops.multiply(open_img, effect_img)
 
     img_list.append(open_img)
