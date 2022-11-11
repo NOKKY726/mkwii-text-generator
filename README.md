@@ -24,6 +24,6 @@ LAP '3'  00:22.872
 ## Usage
 ```streamlit run app.py```
 ## Author
-[Twitter](https://twitter.com/nkfrom_mkw)
+[Twitter](https://twitter.com/nkfrom_mkw/)
 ## License
-[MIT](https://github.com/NOKKY726/mkwii-text-generator/blob/main/LICENSE)
+[MIT](https://github.com/NOKKY726/mkwii-text-generator/blob/main/LICENSE/)
