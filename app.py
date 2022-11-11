@@ -9,9 +9,9 @@ st.set_page_config(
     menu_items={
         "Get Help": None,
         "Report a bug": None,
-        "About": "https://github.com/NOKKY726/mkwii-text-generator"
-    }
-)
+        "About": "https://github.com/NOKKY726/mkwii-text-generator/"
+        }
+    )
 
 
 if "top_color" not in st.session_state:  # 初期化
@@ -208,5 +208,5 @@ display_img = enhancer.enhance(slider)
 st.image(display_img)
 
 
-link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw)"
+link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
 st.sidebar.markdown(link, unsafe_allow_html=True)
