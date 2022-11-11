@@ -2,7 +2,17 @@ import streamlit as st
 import re
 from PIL import Image, ImageChops, ImageEnhance
 
-st.set_page_config(page_title="MKWii Text Generator", layout="wide")
+st.set_page_config(
+    page_title="MKWii Text Generator",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get Help": None,
+        "Report a bug": None,
+        "About": "https://github.com/NOKKY726/mkwii-text-generator"
+    }
+)
+
 
 if "top_color" not in st.session_state:  # 初期化
     st.session_state.top_color = "#f00"
