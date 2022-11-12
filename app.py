@@ -9,7 +9,7 @@ st.set_page_config(
     menu_items={
         "Get Help": None,
         "Report a bug": None,
-        "About": "https://github.com/NOKKY726/mkwii-text-generator/"
+        "About": "https://github.com/NOKKY726/mkwii-text-generator"
         }
     )
 
@@ -101,7 +101,7 @@ elif selectbox=="Gradient":
             )
 
 
-def gradient(top_color, btm_color, size: tuple[int, int]):
+def gradient(size: tuple[int, int], top_color, btm_color) -> Image:
     base = Image.new("RGBA", size, top_color)
     top = Image.new("RGBA", size, btm_color)
     mask = Image.new("L", size)
@@ -131,9 +131,9 @@ for i, file_name in enumerate(file_name_list):
                     )
             else:
                 effect_img = gradient(
+                    open_img.size,
                     st.session_state.top_color,
-                    st.session_state.btm_color,
-                    open_img.size
+                    st.session_state.btm_color
                     )
             open_img = ImageChops.multiply(open_img, effect_img)
 
