@@ -109,7 +109,7 @@ def gradient(size: tuple[int, int], top_color, btm_color) -> Image:
     for y in range(height):
         mask_data.extend([int(255*(y/height))]*width)
     mask.putdata(mask_data)
-    base.paste(top, (0, 0), mask)
+    base.paste(top, mask=mask)
     return base
 
 img_list = []  # 画像を読み込み、追加していく
@@ -185,9 +185,9 @@ for i in range(len(img_list)):  # 画像の結合
                 (max(concat_img.width, x+img_width), y+64)
                 )
             bg.paste(concat_img)
-            img_clear = Image.new("RGBA", bg.size)
-            img_clear.paste(img_list[i], (x, y))
-            concat_img = Image.alpha_composite(bg, img_clear)
+            fg = Image.new("RGBA", bg.size)
+            fg.paste(img_list[i], (x, y))
+            concat_img = Image.alpha_composite(bg, fg)
     else:  # 改行処理
         y += 64
         is_LF = True
