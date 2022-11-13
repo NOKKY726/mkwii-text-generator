@@ -1,7 +1,7 @@
 # MKWii Text Generator
 ![demo](https://user-images.githubusercontent.com/117383835/201029512-db1c7105-6275-4315-abda-a91c3772db06.gif)
 ## URL
-https://nokky-mkwii-text-generator.streamlit.app/
+https://nokky-mkwii-text-generator.streamlit.app
 ## Overview
 マリオカートWiiのフォントを使用し、様々な文字列の画像を作成できます。  
 色の変更も可能です。サムネイル等にお使いください。
