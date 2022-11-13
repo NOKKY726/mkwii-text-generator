@@ -13,7 +13,7 @@ st.set_page_config(
         }
     )
 
-if "top_color" not in st.session_state:  # 初期化
+if "top_color" not in st.session_state:
     st.session_state.top_color = "#f00"
     st.session_state.btm_color = "#0f0"
     st.session_state.color_list = ["#fff" for _ in range(10000)]
@@ -47,7 +47,7 @@ text = ",".join([elem for elem in text if elem!="'"])
 # 右側の空白や改行を削除
 while text[-6:]==",SPACE" or text[-7:]==",SPACE_" or text[-2:]==",\n":
     text = text.removesuffix(",SPACE").removesuffix(",SPACE_").rstrip(",\n")
-# 使用できない文字を空文字に置換 (validation: 検証)
+# 使用できない文字がないか検証
 text = re.sub("[^-+0-9A-Z_,\n]", "", text)
 # 検証時に生じた空文字とファイル名以外のアンダースコアを削除
 file_name_list = [elem for elem in text.split(",") if elem not in ["", "_"]]
@@ -60,7 +60,7 @@ def set_btm_color():
 def set_color_list():
     st.session_state.color_list[index] = st.session_state.color_picker_colorful
 
-if selectbox=="Color":  #「color_picker」を「session_state」で管理
+if selectbox=="Color":
     st.session_state.color_picker_top = st.session_state.top_color
     st.sidebar.color_picker(
         "Pick A Color",
@@ -140,7 +140,7 @@ for i, file_name in enumerate(file_name_list):
     img_list.append(open_img)
 
 
-def concat_position(x, img_width, file_name):  # 文字に応じた幅の調整
+def concat_position(x, img_width, file_name):  # 文字に応じた結合位置の調整
     # 50: 0～9 & SLASH, 42: - & +
     if img_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
         img_width -= 4
