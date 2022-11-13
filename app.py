@@ -140,7 +140,7 @@ for i, file_name in enumerate(file_name_list):
     img_list.append(open_img)
 
 
-def concat_pos(x, img_width, file_name):  # 文字に応じた幅の調整
+def concat_position(x, img_width, file_name):  # 文字に応じた幅の調整
     # 50: 0～9 & SLASH, 42: - & +
     if img_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
         img_width -= 4
@@ -172,19 +172,19 @@ for i in range(len(img_list)):  # 画像の結合
                     "RGBA",
                     (max(concat_img.width, img_width), y+64)
                     )
-                bg.paste(concat_img, (0, 0))
+                bg.paste(concat_img)
                 bg.paste(img_list[i], (0, y))
                 concat_img = bg
                 is_LF = False
         else:
-            x = concat_pos(x, img_width, file_name)
+            x = concat_position(x, img_width, file_name)
             img_width = img_list[i].width
             file_name = file_name_list[i]
             bg = Image.new(
                 "RGBA",
                 (max(concat_img.width, x+img_width), y+64)
                 )
-            bg.paste(concat_img, (0, 0))
+            bg.paste(concat_img)
             img_clear = Image.new("RGBA", bg.size)
             img_clear.paste(img_list[i], (x, y))
             concat_img = Image.alpha_composite(bg, img_clear)
