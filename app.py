@@ -19,7 +19,7 @@ if "top_color" not in st.session_state:
     st.session_state.color_list = ["#fff" for _ in range(10000)]
 
 text = st.sidebar.text_area("text_area", label_visibility="collapsed").upper()
-slider = st.sidebar.slider("Brightness", step=5)/50+1
+slider = st.sidebar.slider("Brightness", step=5)/50+1  # 1～3
 selectbox = st.sidebar.selectbox(
     "selectbox",
     ("Yellow", "White", "Color", "Colorful", "Gradient"),
@@ -101,6 +101,10 @@ elif selectbox=="Gradient":
             )
 
 
+link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
+st.sidebar.markdown(link, unsafe_allow_html=True)
+
+
 def gradient(size: tuple[int, int], top_color, btm_color) -> Image:
     base = Image.new("RGBA", size, top_color)
     top = Image.new("RGBA", size, btm_color)
@@ -121,9 +125,15 @@ for i, file_name in enumerate(file_name_list):
         open_img = Image.open(f"Fonts/Yellow/{file_name}.png")
     else:
         open_img = Image.open(f"Fonts/White/{file_name}.png")
-        # 1文字ずつ乗算 (「Color」は後からまとめて行う)
-        if selectbox in ["Colorful", "Gradient"]:
-            if selectbox=="Colorful":
+        # 1文字ずつ乗算
+        if selectbox in ["Color", "Colorful", "Gradient"]:
+            if selectbox=="Color":
+                effect_img = Image.new(
+                    "RGBA",
+                    open_img.size,
+                    st.session_state.top_color
+                    )
+            elif selectbox=="Colorful":
                 effect_img = Image.new(
                     "RGBA",
                     open_img.size,
@@ -193,20 +203,8 @@ for i in range(len(img_list)):  # 画像の結合
         is_LF = True
 
 
-if selectbox=="Color":
-    effect_img = Image.new(
-        "RGBA",
-        concat_img.size,
-        st.session_state.top_color
-        )
-    concat_img = ImageChops.multiply(concat_img, effect_img)
-
-
 enhancer = ImageEnhance.Brightness(concat_img)  # 明るさ調整
 display_img = enhancer.enhance(slider)
 
+
 st.image(display_img)
-
-
-link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
-st.sidebar.markdown(link, unsafe_allow_html=True)
