@@ -81,14 +81,14 @@ class UserInterface:
             with col3:
                 st.session_state.color_picker_top = st.session_state.top_color
                 st.color_picker(
-                    "Top",
+                    "Top" if self.radio=="Vertical" else "Left",
                     key="color_picker_top",
                     on_change=set_top_color
                     )
             with col4:
                 st.session_state.color_picker_btm = st.session_state.btm_color
                 st.color_picker(
-                    "Bottom",
+                    "Bottom" if self.radio=="Vertical" else "Right",
                     key="color_picker_btm",
                     on_change=set_btm_color
                     )
@@ -126,7 +126,7 @@ class TextGenerator:
 
     def multiply(self) -> list:
         image_list = self.create_image_list()
-        #「Colorful」と「Gradient (Vertical)」以外は早期リターン
+        #「Colorful」と「Gradient (Vertical) 」以外は早期リターン
         if not (self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical"):
             return image_list
 
