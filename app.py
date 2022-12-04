@@ -54,11 +54,10 @@ class UserInterface:
         if self.selectbox=="Colorful" and len(file_name_list):
             col1, col2 = st.sidebar.columns((1, 2))
             with col2:
-                options = file_name_list  # インデックスの取得
-                index = st.selectbox(
+                index = st.selectbox(  # インデックスの取得
                     "Select The Character",
-                    range(len(options)),
-                    format_func=lambda x: options[x]
+                    range(len(file_name_list)),
+                    format_func=lambda x: file_name_list[x]
                     )
 
             def set_color_list():
@@ -128,19 +127,20 @@ class TextGenerator:
         image_list = self.create_image_list()
         if self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical":
             for i, image1 in enumerate(image_list):
-                if self.selectbox=="Colorful":
-                    image2 = Image.new(
-                        "RGBA",
-                        image1.size,
-                        st.session_state.color_list[i]
-                        )
-                if self.selectbox=="Gradient":
-                    image2 = self.gradient(
-                        image1.size,
-                        st.session_state.top_color,
-                        st.session_state.btm_color
-                        )
-                image_list[i] = ImageChops.multiply(image1, image2)
+                if image1!="LF":
+                    if self.selectbox=="Colorful":
+                        image2 = Image.new(
+                            "RGBA",
+                            image1.size,
+                            st.session_state.color_list[i]
+                            )
+                    if self.selectbox=="Gradient":
+                        image2 = self.gradient(
+                            image1.size,
+                            st.session_state.top_color,
+                            st.session_state.btm_color
+                            )
+                    image_list[i] = ImageChops.multiply(image1, image2)
 
         return image_list
 
