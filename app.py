@@ -47,7 +47,7 @@ class UserInterface:
         if self.selectbox=="Color":
             st.session_state.color_picker_top = st.session_state.top_color
             st.sidebar.color_picker(
-                "Pick A Color",
+                "Pick a color",
                 key="color_picker_top",
                 on_change=set_top_color
                 )
@@ -55,7 +55,7 @@ class UserInterface:
             col1, col2 = st.sidebar.columns((1, 2))
             with col2:
                 index = st.selectbox(  # インデックスの取得
-                    "Select The Character",
+                    "Select the character",
                     range(len(file_name_list)),
                     format_func=lambda x: file_name_list[x]
                     )
@@ -66,7 +66,7 @@ class UserInterface:
             with col1:
                 st.session_state.color_picker_colorful = st.session_state.color_list[index]
                 st.color_picker(
-                    "Pick A Color",
+                    "Pick a color",
                     key="color_picker_colorful",
                     on_change=set_color_list
                     )
@@ -81,14 +81,14 @@ class UserInterface:
             with col3:
                 st.session_state.color_picker_top = st.session_state.top_color
                 st.color_picker(
-                    "Pick A Top Color",
+                    "Top",
                     key="color_picker_top",
                     on_change=set_top_color
                     )
             with col4:
                 st.session_state.color_picker_btm = st.session_state.btm_color
                 st.color_picker(
-                    "Pick A Bottom Color",
+                    "Bottom",
                     key="color_picker_btm",
                     on_change=set_btm_color
                     )
@@ -260,13 +260,19 @@ def main():
     user_interface.create_widget_if_needed(file_name_list)
     link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
     st.sidebar.markdown(link, unsafe_allow_html=True)
+    checkbox = st.sidebar.checkbox("Mobile")
 
     text_generator = TextGenerator(
         file_name_list,
         user_interface.selectbox,
         user_interface.radio
         )
-    st.image(text_generator.generate_image(user_interface.slider))
+    MKWii_text = text_generator.generate_image(user_interface.slider)
+
+    if not checkbox:
+        st.image(MKWii_text)
+    else:
+        st.sidebar.image(MKWii_text)
 
 if __name__ == "__main__":
     main()
