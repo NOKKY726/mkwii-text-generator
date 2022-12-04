@@ -104,8 +104,9 @@ class TextGenerator:
         for file_name in self.file_name_list:
             if file_name=="\n":
                 image_list.append("LF")  # LF: Line Feed (改行)
+                continue
 
-            elif self.selectbox=="Yellow":
+            if self.selectbox=="Yellow":
                 image_list.append(Image.open(f"Fonts/Yellow/{file_name}.png"))
             else:
                 image_list.append(Image.open(f"Fonts/White/{file_name}.png"))
@@ -125,22 +126,27 @@ class TextGenerator:
 
     def multiply(self) -> list:
         image_list = self.create_image_list()
-        if self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical":
-            for i, image1 in enumerate(image_list):
-                if image1!="LF":
-                    if self.selectbox=="Colorful":
-                        image2 = Image.new(
-                            "RGBA",
-                            image1.size,
-                            st.session_state.color_list[i]
-                            )
-                    if self.selectbox=="Gradient":
-                        image2 = self.gradient(
-                            image1.size,
-                            st.session_state.top_color,
-                            st.session_state.btm_color
-                            )
-                    image_list[i] = ImageChops.multiply(image1, image2)
+        #「Colorful」と「Gradient (Vertical)」以外は早期リターン
+        if not (self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical"):
+            return image_list
+
+        for i, image1 in enumerate(image_list):
+            if image1=="LF":
+                continue
+
+            if self.selectbox=="Colorful":
+                image2 = Image.new(
+                    "RGBA",
+                    image1.size,
+                    st.session_state.color_list[i]
+                    )
+            if self.selectbox=="Gradient":
+                image2 = self.gradient(
+                    image1.size,
+                    st.session_state.top_color,
+                    st.session_state.btm_color
+                    )
+            image_list[i] = ImageChops.multiply(image1, image2)
 
         return image_list
 
@@ -166,37 +172,38 @@ class TextGenerator:
         y, is_LF = 0, False
         concated_image = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
         for i, image in enumerate(image_list):  # 画像の結合
-            if image!="LF":
-                if i==0 or is_LF:
-                    x = 0
-                    image_width = image.width
-                    file_name = self.file_name_list[i]
-                    if i==0:  # 1文字目
-                        concated_image = image
-                    if is_LF:  # 改行直後
-                        bg = Image.new(
-                            "RGBA",
-                            (max(concated_image.width, image_width), y+64)
-                            )
-                        bg.paste(concated_image)
-                        bg.paste(image, (0, y))
-                        concated_image = bg
-                        is_LF = False
-                else:
-                    x = self.update_x_coordinate(x, image_width, file_name)
-                    image_width = image.width
-                    file_name = self.file_name_list[i]
-                    bg = Image.new(
-                        "RGBA",
-                        (max(concated_image.width, x+image_width), y+64)
-                        )
-                    bg.paste(concated_image)
-                    fg = Image.new("RGBA", bg.size)
-                    fg.paste(image, (x, y))
-                    concated_image = Image.alpha_composite(bg, fg)
             if image=="LF":  # 改行処理
                 y += 64
                 is_LF = True
+                continue
+
+            if i==0 or is_LF:
+                x = 0
+                image_width = image.width
+                file_name = self.file_name_list[i]
+                if i==0:  # 1文字目
+                    concated_image = image
+                if is_LF:  # 改行直後
+                    bg = Image.new(
+                        "RGBA",
+                        (max(concated_image.width, image_width), y+64)
+                        )
+                    bg.paste(concated_image)
+                    bg.paste(image, (0, y))
+                    concated_image = bg
+                    is_LF = False
+            else:
+                x = self.update_x_coordinate(x, image_width, file_name)
+                image_width = image.width
+                file_name = self.file_name_list[i]
+                bg = Image.new(
+                    "RGBA",
+                    (max(concated_image.width, x+image_width), y+64)
+                    )
+                bg.paste(concated_image)
+                fg = Image.new("RGBA", bg.size)
+                fg.paste(image, (x, y))
+                concated_image = Image.alpha_composite(bg, fg)
 
         return concated_image
 
