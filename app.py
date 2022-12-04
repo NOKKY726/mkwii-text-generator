@@ -259,7 +259,6 @@ def main():
         user_interface.selectbox,
         user_interface.radio
         )
-
     st.image(text_generator.generate_image(user_interface.slider))
 
 if __name__ == "__main__":
