@@ -37,7 +37,7 @@ class UserInterface:
         self.selectbox = selectbox
         self.radio = "Vertical"
 
-    def create_widget_if_needed(self, file_name_list):
+    def create_widget_if_needed(self, file_name_list) -> None:
 
         def set_top_color():
             st.session_state.top_color = st.session_state.color_picker_top
@@ -151,7 +151,7 @@ class TextGenerator:
 
         return image_list
 
-    def update_x_coordinate(self, x, image_width, file_name):  # 文字に応じた結合位置の調整
+    def adjust_x_coordinate(self, x, image_width, file_name) -> int:
         # 50: 0～9 & SLASH, 42: - & +
         if image_width in [50, 42] or file_name in ["PERIOD", "CORON"]:
             image_width -= 4
@@ -194,7 +194,7 @@ class TextGenerator:
                     concated_image = bg
                     is_LF = False
             else:
-                x = self.update_x_coordinate(x, image_width, file_name)
+                x = self.adjust_x_coordinate(x, image_width, file_name)
                 image_width = image.width
                 file_name = self.file_name_list[i]
                 bg = Image.new(
