@@ -38,6 +38,7 @@ class UserInterface:
         self.radio = "Vertical"
 
     def create_widget_if_needed(self, file_name_list):
+
         def set_top_color():
             st.session_state.top_color = st.session_state.color_picker_top
 
@@ -124,9 +125,9 @@ class TextGenerator:
         base.paste(top, mask=mask)
         return base
 
-    def multiply(self) -> list:
+    def multiply_char(self) -> list:
         image_list = self.create_image_list()
-        #「Colorful」と「Gradient (Vertical) 」以外は早期リターン
+        #「Colorful」と「Gradient (Vertical)」以外は早期リターン
         if not (self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical"):
             return image_list
 
@@ -168,7 +169,7 @@ class TextGenerator:
         return x
 
     def concat_image(self) -> Image:
-        image_list = self.multiply()
+        image_list = self.multiply_char()
         y, is_LF = 0, False
         concated_image = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
         for i, image in enumerate(image_list):  # 画像の結合
@@ -207,25 +208,30 @@ class TextGenerator:
 
         return concated_image
 
-    def generate_image(self, slider) -> Image:
+    def multiply_str(self) -> Image:
         concated_image = self.concat_image()
-        if self.selectbox=="Color" or self.radio=="Horizontal":
-            if self.selectbox=="Color":
-                image2 = Image.new(
-                    "RGBA",
-                    concated_image.size,
-                    st.session_state.top_color
-                    )
-            if self.radio=="Horizontal":
-                image2 = self.gradient(
-                    (concated_image.height, concated_image.width),
-                    st.session_state.top_color,
-                    st.session_state.btm_color
-                    )
-                image2 = image2.transpose(Image.Transpose.ROTATE_90)
-            concated_image = ImageChops.multiply(concated_image, image2)
+        #「Color」と「Gradient (Horizontal)」以外は早期リターン
+        if not (self.selectbox=="Color" or self.radio=="Horizontal"):
+            return concated_image
 
-        enhancer = ImageEnhance.Brightness(concated_image)  # 明るさ調整
+        if self.selectbox=="Color":
+            image2 = Image.new(
+                "RGBA",
+                concated_image.size,
+                st.session_state.top_color
+                )
+        if self.radio=="Horizontal":
+            image2 = self.gradient(
+                (concated_image.height, concated_image.width),
+                st.session_state.top_color,
+                st.session_state.btm_color
+                )
+            image2 = image2.transpose(Image.Transpose.ROTATE_90)
+        return ImageChops.multiply(concated_image, image2)
+
+    def generate_image(self, slider) -> Image:
+        color_image = self.multiply_str()
+        enhancer = ImageEnhance.Brightness(color_image)  # 明るさ調整
         return enhancer.enhance(slider)
 
 
@@ -250,7 +256,7 @@ def main():
     file_name_list = text.to_file_name_list()
 
     user_interface = UserInterface(
-        st.sidebar.slider("Brightness", step=5)/50+1,  # 1～3
+        st.sidebar.slider("Brightness", step=5)/50+1,  # 1 to 3
         st.sidebar.selectbox(
             "selectbox",
             ("Yellow", "White", "Color", "Colorful", "Gradient"),
