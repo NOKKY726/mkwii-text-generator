@@ -18,7 +18,7 @@ class Text:
                 else:
                     need_replace = False
                     count += 1
-            if need_replace and item in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
+            elif need_replace and item in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
                 text_list[i] += "_"
 
         #「'」を削除
@@ -52,7 +52,7 @@ class UserInterface:
                 key="color_picker_top",
                 on_change=set_top_color
                 )
-        if self.selectbox=="Colorful" and len(file_name_list):
+        elif self.selectbox=="Colorful" and len(file_name_list):
             col1, col2 = st.sidebar.columns((1, 2))
             with col2:
                 index = st.selectbox(  # インデックスの取得
@@ -71,7 +71,7 @@ class UserInterface:
                     key="color_picker_colorful",
                     on_change=set_color_list
                     )
-        if self.selectbox=="Gradient":
+        elif self.selectbox=="Gradient":
             self.radio = st.sidebar.radio(
                 "radio",
                 ("Vertical", "Horizontal"),
@@ -127,7 +127,7 @@ class TextGenerator:
 
     def multiply_char(self) -> list:
         image_list = self.create_image_list()
-        #「Colorful」と「Gradient (Vertical)」以外は早期リターン
+        #「Colorful」と「Gradient(Vertical)」以外は早期リターン
         if not (self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical"):
             return image_list
 
@@ -141,7 +141,7 @@ class TextGenerator:
                     image1.size,
                     st.session_state.color_list[i]
                     )
-            if self.selectbox=="Gradient":
+            elif self.selectbox=="Gradient":
                 image2 = self.gradient(
                     image1.size,
                     st.session_state.top_color,
@@ -160,9 +160,9 @@ class TextGenerator:
 
         if file_name in ["T", "7_"]:
             image_width -= 6
-        if file_name in ["I", "M", "CORON"]:
+        elif file_name in ["I", "M", "CORON"]:
             image_width -= 2
-        if file_name in ["L", "Q"]:
+        elif file_name in ["L", "Q"]:
             image_width += 2
 
         x += image_width
@@ -184,7 +184,7 @@ class TextGenerator:
                 file_name = self.file_name_list[i]
                 if i==0:  # 1文字目
                     concated_image = image
-                if is_LF:  # 改行直後
+                elif is_LF:  # 改行直後
                     bg = Image.new(
                         "RGBA",
                         (max(concated_image.width, image_width), y+64)
@@ -210,7 +210,7 @@ class TextGenerator:
 
     def multiply_str(self) -> Image:
         concated_image = self.concat_image()
-        #「Color」と「Gradient (Horizontal)」以外は早期リターン
+        #「Color」と「Gradient(Horizontal)」以外は早期リターン
         if not (self.selectbox=="Color" or self.radio=="Horizontal"):
             return concated_image
 
@@ -220,7 +220,7 @@ class TextGenerator:
                 concated_image.size,
                 st.session_state.top_color
                 )
-        if self.radio=="Horizontal":
+        elif self.radio=="Horizontal":
             image2 = self.gradient(
                 (concated_image.height, concated_image.width),
                 st.session_state.top_color,
