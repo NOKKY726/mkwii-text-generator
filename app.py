@@ -21,15 +21,13 @@ class Text:
             elif need_replace and item in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
                 text_list[i] += "_"
 
-        #「'」を削除
-        text_list = [item for item in text_list if item!="'"]
-        # 右側の空白や改行を削除
+        # 使用できない文字がないか検証
+        text_list = [item for item in text_list if re.sub("[^-+0-9A-Z\n]", "", item)]
+        # 右側の空白と改行を削除
         while len(text_list) and text_list[-1] in ["SPACE", "SPACE_", "\n"]:
             del text_list[-1]
-        # 使用できない文字がないか検証
-        text_list = [re.sub("[^-+0-9A-Z_,\n]", "", item) for item in text_list]
-        # 検証時に生じた空文字とファイル名以外のアンダースコアを削除し、それを返す
-        return [item for item in text_list if item not in ["", "_"]]
+
+        return text_list
 
 class UserInterface:
     def __init__(self, slider, selectbox) -> None:
