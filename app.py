@@ -2,6 +2,7 @@ import streamlit as st
 import re
 from PIL import Image, ImageChops, ImageEnhance
 
+
 def main():
     st.set_page_config(
         page_title="MKWii Text Generator",
@@ -10,23 +11,23 @@ def main():
         menu_items={
             "Get Help": None,
             "Report a bug": None,
-            "About": "https://github.com/NOKKY726/mkwii-text-generator"
-        }
+            "About": "https://github.com/NOKKY726/mkwii-text-generator",
+        },
     )
 
     if "top_color" not in st.session_state:
         st.session_state.top_color = "#f00"
         st.session_state.btm_color = "#0f0"
-        st.session_state.color_list = ["#fff" for _ in range(10000)]
+        st.session_state.colors = ["#fff" for _ in range(10000)]
 
     user_interface = UserInterface(
         st.sidebar.text_area("text_area", label_visibility="collapsed"),
-        st.sidebar.slider("Brightness", step=5)/50+1,  # 1.0 to 3.0
+        st.sidebar.slider("Brightness", step=5) / 50 + 1,  # 1.0 to 3.0
         st.sidebar.selectbox(
             "selectbox",
             ("Yellow", "White", "Color", "Colorful", "Gradient"),
-            label_visibility="collapsed"
-        )
+            label_visibility="collapsed",
+        ),
     )
     link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
     st.sidebar.markdown(link, unsafe_allow_html=True)
@@ -34,7 +35,6 @@ def main():
 
     text_generator = TextGenerator(user_interface)
     MKWii_text = text_generator.generate_image()
-
     if not checkbox:
         st.image(MKWii_text)
     else:
@@ -43,112 +43,117 @@ def main():
 
 class UserInterface:
     def __init__(self, text_area, slider, selectbox) -> None:
-        self.file_name_list = self.to_file_name_list(text_area)
+        self.file_names = self.to_file_names(text_area)
         self.slider = slider
         self.selectbox = selectbox
         self.radio = "Vertical"
         self.create_widget_if_needed()
 
-    def to_file_name_list(self, text_area) -> list:
+    def to_file_names(self, text_area) -> list:
         replace_dict = {":": "CORON", ".": "PERIOD", "/": "SLASH", " ": "SPACE"}
-        file_name_list = [replace_dict.get(char, char) for char in text_area.upper()]
+        file_names = [replace_dict.get(char, char) for char in text_area.upper()]
 
-        count, need_replace = 0, False  #「'」間の文字を置換
-        for i, item in enumerate(file_name_list):
-            if item=="'" and count<file_name_list.count("'")//2:
+        count, need_replace = 0, False  # 「'」間の文字を置換
+        for i, file_name in enumerate(file_names):
+            if file_name == "'" and count < file_names.count("'") // 2:
                 if not need_replace:
                     need_replace = True
                 else:
                     need_replace = False
                     count += 1
-            elif need_replace and item in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
-                file_name_list[i] += "_"
+            elif need_replace and file_name in [
+                *map(str, range(10)),
+                "-",
+                "SLASH",
+                "SPACE",
+            ]:
+                file_names[i] += "_"
 
         # 使用できない文字がないか検証
-        file_name_list = [item for item in file_name_list if re.sub("[^-+0-9A-Z\n]", "", item)]
+        file_names = [
+            file_name
+            for file_name in file_names
+            if re.sub("[^-+0-9A-Z\n]", "", file_name)
+        ]
         # 右側の空白と改行を削除
-        while len(file_name_list) and file_name_list[-1] in ["SPACE", "SPACE_", "\n"]:
-            del file_name_list[-1]
+        while len(file_names) and file_names[-1] in ["SPACE", "SPACE_", "\n"]:
+            del file_names[-1]
 
-        return file_name_list
+        return file_names
 
     def create_widget_if_needed(self) -> None:
-
         def set_top_color():
             st.session_state.top_color = st.session_state.color_picker_top
 
         def set_btm_color():
             st.session_state.btm_color = st.session_state.color_picker_btm
 
-        if self.selectbox=="Color":
+        if self.selectbox == "Color":
             st.session_state.color_picker_top = st.session_state.top_color
             st.sidebar.color_picker(
-                "Pick a color",
-                key="color_picker_top",
-                on_change=set_top_color
+                "Pick a color", key="color_picker_top", on_change=set_top_color
             )
-        elif self.selectbox=="Colorful" and len(self.file_name_list):
+        elif self.selectbox == "Colorful" and len(self.file_names):
             col1, col2 = st.sidebar.columns((1, 2))
             with col2:
                 index = st.selectbox(  # インデックスの取得
                     "Select the character",
-                    range(len(self.file_name_list)),
-                    format_func=lambda x: self.file_name_list[x]
+                    range(len(self.file_names)),
+                    format_func=lambda x: self.file_names[x],
                 )
 
-            def set_color_list():
-                st.session_state.color_list[index] = st.session_state.color_picker_colorful
+            def set_colors():
+                st.session_state.colors[index] = st.session_state.color_picker_colorful
 
             with col1:
-                st.session_state.color_picker_colorful = st.session_state.color_list[index]
+                st.session_state.color_picker_colorful = st.session_state.colors[index]
                 st.color_picker(
-                    "Pick a color",
-                    key="color_picker_colorful",
-                    on_change=set_color_list
+                    "Pick a color", key="color_picker_colorful", on_change=set_colors
                 )
-        elif self.selectbox=="Gradient":
+        elif self.selectbox == "Gradient":
             self.radio = st.sidebar.radio(
                 "radio",
                 ("Vertical", "Horizontal"),
                 horizontal=True,
-                label_visibility="collapsed"
+                label_visibility="collapsed",
             )
             col3, col4 = st.sidebar.columns(2)
             with col3:
                 st.session_state.color_picker_top = st.session_state.top_color
                 st.color_picker(
-                    "Top" if self.radio=="Vertical" else "Left",
+                    "Top" if self.radio == "Vertical" else "Left",
                     key="color_picker_top",
-                    on_change=set_top_color
+                    on_change=set_top_color,
                 )
             with col4:
                 st.session_state.color_picker_btm = st.session_state.btm_color
                 st.color_picker(
-                    "Bottom" if self.radio=="Vertical" else "Right",
+                    "Bottom" if self.radio == "Vertical" else "Right",
                     key="color_picker_btm",
-                    on_change=set_btm_color
+                    on_change=set_btm_color,
                 )
+
 
 class TextGenerator:
     def __init__(self, user_interface) -> None:
-        self.file_name_list = user_interface.file_name_list
+        self.file_names = user_interface.file_names
         self.slider = user_interface.slider
         self.selectbox = user_interface.selectbox
         self.radio = user_interface.radio
 
-    def create_image_list(self) -> list:
-        image_list = []
-        for file_name in self.file_name_list:
-            if file_name=="\n":
-                image_list.append("LF")  # LF: Line Feed (改行)
+    def create_images(self) -> list:
+        images = []
+        for file_name in self.file_names:
+            if file_name == "\n":
+                images.append("LF")  # LF: Line Feed (改行)
                 continue
 
-            if self.selectbox=="Yellow":
-                image_list.append(Image.open(f"Fonts/Yellow/{file_name}.png"))
+            if self.selectbox == "Yellow":
+                images.append(Image.open(f"Fonts/Yellow/{file_name}.png"))
             else:
-                image_list.append(Image.open(f"Fonts/White/{file_name}.png"))
+                images.append(Image.open(f"Fonts/White/{file_name}.png"))
 
-        return image_list
+        return images
 
     def gradient(self, size: tuple[int, int], top_color, btm_color) -> Image:
         base = Image.new("RGBA", size, top_color)
@@ -156,36 +161,32 @@ class TextGenerator:
         mask = Image.new("L", size)
         mask_data, width, height = [], *size  # アンパック
         for y in range(height):
-            mask_data.extend([int(255*(y/height))]*width)
+            mask_data.extend([int(255 * (y / height))] * width)
         mask.putdata(mask_data)
         base.paste(top, mask=mask)
         return base
 
     def multiply_char(self) -> list:
-        image_list = self.create_image_list()
-        #「Colorful」と「Gradient(Vertical)」以外は早期リターン
-        if not (self.selectbox in ["Colorful", "Gradient"] and self.radio=="Vertical"):
-            return image_list
+        images = self.create_images()
+        # 「Colorful」と「Gradient(Vertical)」以外は早期リターン
+        if not (
+            self.selectbox in ["Colorful", "Gradient"] and self.radio == "Vertical"
+        ):
+            return images
 
-        for i, image1 in enumerate(image_list):
-            if image1=="LF":
+        for i, image1 in enumerate(images):
+            if image1 == "LF":
                 continue
 
-            if self.selectbox=="Colorful":
-                image2 = Image.new(
-                    "RGBA",
-                    image1.size,
-                    st.session_state.color_list[i]
-                )
-            elif self.selectbox=="Gradient":
+            if self.selectbox == "Colorful":
+                image2 = Image.new("RGBA", image1.size, st.session_state.colors[i])
+            elif self.selectbox == "Gradient":
                 image2 = self.gradient(
-                    image1.size,
-                    st.session_state.top_color,
-                    st.session_state.btm_color
+                    image1.size, st.session_state.top_color, st.session_state.btm_color
                 )
-            image_list[i] = ImageChops.multiply(image1, image2)
+            images[i] = ImageChops.multiply(image1, image2)
 
-        return image_list
+        return images
 
     def adjust_x_coordinate(self, x, image_width, file_name) -> int:
         # 50: 0～9 & SLASH, 42: - & +
@@ -205,25 +206,24 @@ class TextGenerator:
         return x
 
     def concat_image(self) -> Image:
-        image_list = self.multiply_char()
+        images = self.multiply_char()
         y, is_LF = 0, False
         concated_image = Image.open("Fonts/Yellow/SPACE.png")  # エラー防止
-        for i, image in enumerate(image_list):  # 画像の結合
-            if image=="LF":  # 改行処理
+        for i, image in enumerate(images):  # 画像の結合
+            if image == "LF":  # 改行処理
                 y += 64
                 is_LF = True
                 continue
 
-            if i==0 or is_LF:
+            if i == 0 or is_LF:
                 x = 0
                 image_width = image.width
-                file_name = self.file_name_list[i]
-                if i==0:  # 1文字目
+                file_name = self.file_names[i]
+                if i == 0:  # 1文字目
                     concated_image = image
                 elif is_LF:  # 改行直後
                     bg = Image.new(
-                        "RGBA",
-                        (max(concated_image.width, image_width), y+64)
+                        "RGBA", (max(concated_image.width, image_width), y + 64)
                     )
                     bg.paste(concated_image)
                     bg.paste(image, (0, y))
@@ -232,10 +232,9 @@ class TextGenerator:
             else:
                 x = self.adjust_x_coordinate(x, image_width, file_name)
                 image_width = image.width
-                file_name = self.file_name_list[i]
+                file_name = self.file_names[i]
                 bg = Image.new(
-                    "RGBA",
-                    (max(concated_image.width, x+image_width), y+64)
+                    "RGBA", (max(concated_image.width, x + image_width), y + 64)
                 )
                 bg.paste(concated_image)
                 fg = Image.new("RGBA", bg.size)
@@ -246,29 +245,26 @@ class TextGenerator:
 
     def multiply_str(self) -> Image:
         concated_image = self.concat_image()
-        #「Color」と「Gradient(Horizontal)」以外は早期リターン
-        if not (self.selectbox=="Color" or self.radio=="Horizontal"):
+        # 「Color」と「Gradient(Horizontal)」以外は早期リターン
+        if not (self.selectbox == "Color" or self.radio == "Horizontal"):
             return concated_image
 
-        if self.selectbox=="Color":
-            image2 = Image.new(
-                "RGBA",
-                concated_image.size,
-                st.session_state.top_color
-            )
-        elif self.radio=="Horizontal":
+        if self.selectbox == "Color":
+            image2 = Image.new("RGBA", concated_image.size, st.session_state.top_color)
+        elif self.radio == "Horizontal":
             image2 = self.gradient(
                 (concated_image.height, concated_image.width),
                 st.session_state.top_color,
-                st.session_state.btm_color
+                st.session_state.btm_color,
             )
             image2 = image2.transpose(Image.Transpose.ROTATE_90)
         return ImageChops.multiply(concated_image, image2)
 
     def generate_image(self) -> Image:
         color_image = self.multiply_str()
-        enhancer = ImageEnhance.Brightness(color_image)  # 明るさ調整
+        enhancer = ImageEnhance.Brightness(color_image)  # 輝度調整
         return enhancer.enhance(self.slider)
+
 
 if __name__ == "__main__":
     main()
