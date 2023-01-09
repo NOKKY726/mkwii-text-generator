@@ -2,40 +2,77 @@ import streamlit as st
 import re
 from PIL import Image, ImageChops, ImageEnhance
 
-class Text:
-    def __init__(self, text_area) -> None:
-        self.text_area = text_area
+def main():
+    st.set_page_config(
+        page_title="MKWii Text Generator",
+        layout="wide",
+        initial_sidebar_state="expanded",
+        menu_items={
+            "Get Help": None,
+            "Report a bug": None,
+            "About": "https://github.com/NOKKY726/mkwii-text-generator"
+        }
+    )
 
-    def to_file_name_list(self) -> list:
+    if "top_color" not in st.session_state:
+        st.session_state.top_color = "#f00"
+        st.session_state.btm_color = "#0f0"
+        st.session_state.color_list = ["#fff" for _ in range(10000)]
+
+    user_interface = UserInterface(
+        st.sidebar.text_area("text_area", label_visibility="collapsed"),
+        st.sidebar.slider("Brightness", step=5)/50+1,  # 1.0 to 3.0
+        st.sidebar.selectbox(
+            "selectbox",
+            ("Yellow", "White", "Color", "Colorful", "Gradient"),
+            label_visibility="collapsed"
+        )
+    )
+    link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
+    st.sidebar.markdown(link, unsafe_allow_html=True)
+    checkbox = st.sidebar.checkbox("Mobile")
+
+    text_generator = TextGenerator(user_interface)
+    MKWii_text = text_generator.generate_image()
+
+    if not checkbox:
+        st.image(MKWii_text)
+    else:
+        st.sidebar.image(MKWii_text)
+
+
+class UserInterface:
+    def __init__(self, text_area, slider, selectbox) -> None:
+        self.file_name_list = self.to_file_name_list(text_area)
+        self.slider = slider
+        self.selectbox = selectbox
+        self.radio = "Vertical"
+        self.create_widget_if_needed()
+
+    def to_file_name_list(self, text_area) -> list:
         replace_dict = {":": "CORON", ".": "PERIOD", "/": "SLASH", " ": "SPACE"}
-        text_list = [replace_dict.get(char, char) for char in self.text_area.upper()]
+        file_name_list = [replace_dict.get(char, char) for char in text_area.upper()]
 
         count, need_replace = 0, False  #「'」間の文字を置換
-        for i, item in enumerate(text_list):
-            if item=="'" and count<text_list.count("'")//2:
+        for i, item in enumerate(file_name_list):
+            if item=="'" and count<file_name_list.count("'")//2:
                 if not need_replace:
                     need_replace = True
                 else:
                     need_replace = False
                     count += 1
             elif need_replace and item in [*map(str, range(10)), "-", "SLASH", "SPACE"]:
-                text_list[i] += "_"
+                file_name_list[i] += "_"
 
         # 使用できない文字がないか検証
-        text_list = [item for item in text_list if re.sub("[^-+0-9A-Z\n]", "", item)]
+        file_name_list = [item for item in file_name_list if re.sub("[^-+0-9A-Z\n]", "", item)]
         # 右側の空白と改行を削除
-        while len(text_list) and text_list[-1] in ["SPACE", "SPACE_", "\n"]:
-            del text_list[-1]
+        while len(file_name_list) and file_name_list[-1] in ["SPACE", "SPACE_", "\n"]:
+            del file_name_list[-1]
 
-        return text_list
+        return file_name_list
 
-class UserInterface:
-    def __init__(self, slider, selectbox) -> None:
-        self.slider = slider
-        self.selectbox = selectbox
-        self.radio = "Vertical"
-
-    def create_widget_if_needed(self, file_name_list) -> None:
+    def create_widget_if_needed(self) -> None:
 
         def set_top_color():
             st.session_state.top_color = st.session_state.color_picker_top
@@ -49,15 +86,15 @@ class UserInterface:
                 "Pick a color",
                 key="color_picker_top",
                 on_change=set_top_color
-                )
-        elif self.selectbox=="Colorful" and len(file_name_list):
+            )
+        elif self.selectbox=="Colorful" and len(self.file_name_list):
             col1, col2 = st.sidebar.columns((1, 2))
             with col2:
                 index = st.selectbox(  # インデックスの取得
                     "Select the character",
-                    range(len(file_name_list)),
-                    format_func=lambda x: file_name_list[x]
-                    )
+                    range(len(self.file_name_list)),
+                    format_func=lambda x: self.file_name_list[x]
+                )
 
             def set_color_list():
                 st.session_state.color_list[index] = st.session_state.color_picker_colorful
@@ -68,14 +105,14 @@ class UserInterface:
                     "Pick a color",
                     key="color_picker_colorful",
                     on_change=set_color_list
-                    )
+                )
         elif self.selectbox=="Gradient":
             self.radio = st.sidebar.radio(
                 "radio",
                 ("Vertical", "Horizontal"),
                 horizontal=True,
                 label_visibility="collapsed"
-                )
+            )
             col3, col4 = st.sidebar.columns(2)
             with col3:
                 st.session_state.color_picker_top = st.session_state.top_color
@@ -83,20 +120,21 @@ class UserInterface:
                     "Top" if self.radio=="Vertical" else "Left",
                     key="color_picker_top",
                     on_change=set_top_color
-                    )
+                )
             with col4:
                 st.session_state.color_picker_btm = st.session_state.btm_color
                 st.color_picker(
                     "Bottom" if self.radio=="Vertical" else "Right",
                     key="color_picker_btm",
                     on_change=set_btm_color
-                    )
+                )
 
 class TextGenerator:
-    def __init__(self, file_name_list, selectbox, radio) -> None:
-        self.file_name_list = file_name_list
-        self.selectbox = selectbox
-        self.radio = radio
+    def __init__(self, user_interface) -> None:
+        self.file_name_list = user_interface.file_name_list
+        self.slider = user_interface.slider
+        self.selectbox = user_interface.selectbox
+        self.radio = user_interface.radio
 
     def create_image_list(self) -> list:
         image_list = []
@@ -138,13 +176,13 @@ class TextGenerator:
                     "RGBA",
                     image1.size,
                     st.session_state.color_list[i]
-                    )
+                )
             elif self.selectbox=="Gradient":
                 image2 = self.gradient(
                     image1.size,
                     st.session_state.top_color,
                     st.session_state.btm_color
-                    )
+                )
             image_list[i] = ImageChops.multiply(image1, image2)
 
         return image_list
@@ -186,7 +224,7 @@ class TextGenerator:
                     bg = Image.new(
                         "RGBA",
                         (max(concated_image.width, image_width), y+64)
-                        )
+                    )
                     bg.paste(concated_image)
                     bg.paste(image, (0, y))
                     concated_image = bg
@@ -198,7 +236,7 @@ class TextGenerator:
                 bg = Image.new(
                     "RGBA",
                     (max(concated_image.width, x+image_width), y+64)
-                    )
+                )
                 bg.paste(concated_image)
                 fg = Image.new("RGBA", bg.size)
                 fg.paste(image, (x, y))
@@ -217,66 +255,20 @@ class TextGenerator:
                 "RGBA",
                 concated_image.size,
                 st.session_state.top_color
-                )
+            )
         elif self.radio=="Horizontal":
             image2 = self.gradient(
                 (concated_image.height, concated_image.width),
                 st.session_state.top_color,
                 st.session_state.btm_color
-                )
+            )
             image2 = image2.transpose(Image.Transpose.ROTATE_90)
         return ImageChops.multiply(concated_image, image2)
 
-    def generate_image(self, slider) -> Image:
+    def generate_image(self) -> Image:
         color_image = self.multiply_str()
         enhancer = ImageEnhance.Brightness(color_image)  # 明るさ調整
-        return enhancer.enhance(slider)
-
-
-def main():
-    st.set_page_config(
-        page_title="MKWii Text Generator",
-        layout="wide",
-        initial_sidebar_state="expanded",
-        menu_items={
-            "Get Help": None,
-            "Report a bug": None,
-            "About": "https://github.com/NOKKY726/mkwii-text-generator"
-            }
-        )
-
-    if "top_color" not in st.session_state:
-        st.session_state.top_color = "#f00"
-        st.session_state.btm_color = "#0f0"
-        st.session_state.color_list = ["#fff" for _ in range(10000)]
-
-    text = Text(st.sidebar.text_area("text_area", label_visibility="collapsed"))
-    file_name_list = text.to_file_name_list()
-
-    user_interface = UserInterface(
-        st.sidebar.slider("Brightness", step=5)/50+1,  # 1 to 3
-        st.sidebar.selectbox(
-            "selectbox",
-            ("Yellow", "White", "Color", "Colorful", "Gradient"),
-            label_visibility="collapsed"
-            )
-        )
-    user_interface.create_widget_if_needed(file_name_list)
-    link = "[Developer's Twitter](https://twitter.com/nkfrom_mkw/)"
-    st.sidebar.markdown(link, unsafe_allow_html=True)
-    checkbox = st.sidebar.checkbox("Mobile")
-
-    text_generator = TextGenerator(
-        file_name_list,
-        user_interface.selectbox,
-        user_interface.radio
-        )
-    MKWii_text = text_generator.generate_image(user_interface.slider)
-
-    if not checkbox:
-        st.image(MKWii_text)
-    else:
-        st.sidebar.image(MKWii_text)
+        return enhancer.enhance(self.slider)
 
 if __name__ == "__main__":
     main()
